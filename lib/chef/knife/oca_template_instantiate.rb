@@ -153,6 +153,7 @@ class Chef
 
         validate!
 
+        template_id = @name_args.first
         @template = connection.templates.get(template_id)
         instance_id = @template.instantiate
         @server = connection.virtual_machines.get(instance_id)
