@@ -69,11 +69,11 @@ class Chef
         @name_args.each do |instance_id|
 
           begin
-            @server = connection.servers.get(instance_id.to_s)
+            @server = connection.virtual_machines.get(instance_id.to_s)
 
             msg_pair("ID", @server.id.to_s)
             msg_pair("Public IP", @server.template['NIC']['IP'].to_s)
-            msg_pair("Public DNS Name", @server.dns_name)
+            msg_pair("Public DNS Name", reverse_dns_lookup(@server.template['NIC']['IP'].to_s))
             msg_pair("Template", connection.templates.get(@server.template_id).name.to_s)
 
             puts "\n"
