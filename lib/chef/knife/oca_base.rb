@@ -23,7 +23,7 @@ require 'resolv'
 
 class Chef
   class Knife
-    module OCABase
+    module OcaBase
 
       # :nodoc:
       # Would prefer to do this in a rational way, but can't be done b/c of

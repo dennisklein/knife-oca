@@ -23,9 +23,9 @@ require 'chef/knife/oca_base'
 
 class Chef
   class Knife
-    class OCATemplateInstantiate < Knife
+    class OcaTemplateInstantiate < Knife
 
-      include Knife::OCABase
+      include Knife::OcaBase
 
       deps do
         require 'fog'

@@ -23,9 +23,9 @@ require 'chef/knife/oca_base'
 
 class Chef
   class Knife
-    class OCAServerList < Knife
+    class OcaServerList < Knife
 
-      include Knife::OCABase
+      include Knife::OcaBase
 
       banner "knife oca server list (options)"
 

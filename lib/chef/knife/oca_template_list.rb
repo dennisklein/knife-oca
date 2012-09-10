@@ -22,9 +22,9 @@ require 'chef/knife/oca_base'
 
 class Chef
   class Knife
-    class OCATemplateList < Knife
+    class OcaTemplateList < Knife
 
-      include Knife::OCABase
+      include Knife::OcaBase
 
       banner "knife oca template list (options)"
 

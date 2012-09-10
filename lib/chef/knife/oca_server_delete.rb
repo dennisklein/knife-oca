@@ -27,9 +27,9 @@ require 'chef/api_client'
 
 class Chef
   class Knife
-    class OCAServerDelete < Knife
+    class OcaServerDelete < Knife
 
-      include Knife::OCABase
+      include Knife::OcaBase
 
       banner "knife oca server delete SERVER [SERVER] (options)"
 
