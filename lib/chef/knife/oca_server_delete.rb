@@ -69,7 +69,7 @@ class Chef
         @name_args.each do |instance_id|
 
           begin
-            @server = connection.servers.get(instance_id)
+            @server = connection.servers.get(instance_id.to_s)
 
             msg_pair("ID", @server.id.to_s)
             msg_pair("Public IP", @server.template['NIC']['IP'].to_s)
