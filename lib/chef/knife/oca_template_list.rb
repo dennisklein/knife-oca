@@ -50,4 +50,4 @@ class Chef
       end
     end
   end
-endi
+end
