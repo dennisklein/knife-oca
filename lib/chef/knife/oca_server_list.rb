@@ -39,7 +39,7 @@ class Chef
           ui.color('Public IP', :bold),
           ui.color('Public DNS Name', :bold),
           ui.color('State', :bold),
-          ui.color('# CPUs', :bold),
+          ui.color('CPUs', :bold),
           ui.color('Memory', :bold),
           ui.color('Template', :bold)
         ]
