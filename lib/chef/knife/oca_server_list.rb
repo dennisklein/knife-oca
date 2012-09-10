@@ -32,7 +32,7 @@ class Chef
       def run
         $stdout.sync = true
 
-        #validate!
+        validate!
 
         server_list = [
           ui.color('ID', :bold),
