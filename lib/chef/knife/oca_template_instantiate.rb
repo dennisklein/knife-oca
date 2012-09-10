@@ -156,7 +156,7 @@ class Chef
         template_id = @name_args.first
         @template = connection.templates.get(template_id)
         instance_id = @template.instantiate
-        @server = connection.virtual_machines.get(instance_id)
+        @server = connection.virtual_machines.get(instance_id.to_s)
 
         hashed_tags={}
         tags.map{ |t| key,val=t.split('='); hashed_tags[key]=val} unless tags.nil?
