@@ -183,12 +183,12 @@ class Chef
 
         puts("\n")
 
-        msg_pair("Public DNS Name", @server.dns_name)
+        fqdn = dns_reverse_lookup(@server.template['NIC']['IP'])
+        
+        msg_pair("Public DNS Name", fqdn)
         msg_pair("Public IP Address", @server.template['NIC']['IP'])
 
         print "\n#{ui.color("Waiting for sshd", :magenta)}"
-
-        fqdn = @server.dns_name
 
         print(".") until tcp_test_ssh(fqdn) {
           sleep @initial_sleep_delay ||= 10
@@ -199,10 +199,12 @@ class Chef
 
         puts "\n"
         msg_pair("Instance ID", @server.id)
-        msg_pair("Flavor", @server.flavor_id)
-        msg_pair("Image", @server.image_id)
-        msg_pair("Public DNS Name", @server.dns_name)
-        msg_pair("Public IP Address", @server.public_ip_address)
+        msg_pair("Template", @template.name)
+        msg_pair("# CPUs", @template.template['VCPU'])
+        msg_pair("Memory", @template.template['MEMORY'])
+        msg_pair("Architecture", @template.template['OS']['ARCH'])
+        msg_pair("Public DNS Name", fqdn)
+        msg_pair("Public IP Address", @server.template['NIC']['IP'])
         msg_pair("Environment", config[:environment] || '_default')
         msg_pair("Run List", config[:run_list].join(', '))
         msg_pair("JSON Attributes",config[:json_attributes]) unless config[:json_attributes].empty?
@@ -212,10 +214,14 @@ class Chef
         bootstrap = Chef::Knife::Bootstrap.new
         bootstrap.name_args = [fqdn]
         bootstrap.config[:run_list] = config[:run_list]
-        bootstrap.config[:ssh_user] = config[:ssh_user]
-        bootstrap.config[:ssh_port] = config[:ssh_port]
-        bootstrap.config[:identity_file] = config[:identity_file]
-        bootstrap.config[:chef_node_name] = config[:chef_node_name] || server.id
+        bootstrap.config[:ssh_user] = Chef::Config[:ssh_user] || config[:ssh_user] 
+        bootstrap.config[:ssh_port] = Chef::Config[:ssh_port] || config[:ssh_port]
+        if Chef::Config[:identity_file].nil? && config[:identity_file].nil? then
+          bootstrap.config[:ssh_password] = Chef::Config[:ssh_password] || config[:ssh_password]
+        else
+          bootstrap.config[:identity_file] = Chef::Config[:identity_file] || config[:identity_file]
+        end
+        bootstrap.config[:chef_node_name] = config[:chef_node_name] || fqdn
         bootstrap.config[:prerelease] = config[:prerelease]
         bootstrap.config[:bootstrap_version] = locate_config_value(:bootstrap_version)
         bootstrap.config[:first_boot_attributes] = config[:json_attributes]
