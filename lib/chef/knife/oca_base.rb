@@ -89,6 +89,8 @@ class Chef
 
       def dns_reverse_lookup(ip)
         Resolv::DNS.new.getname(ip.to_s).to_s
+      rescue Resolv::ResolvError => e
+        '-not available-'
       end
 
     end
