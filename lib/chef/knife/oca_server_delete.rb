@@ -71,9 +71,11 @@ class Chef
           begin
             @server = connection.virtual_machines.get(instance_id.to_s)
 
+            fqdn = dns_reverse_lookup(@server.template['NIC']['IP'].to_s)
+
             msg_pair("ID", @server.id.to_s)
             msg_pair("Public IP", @server.template['NIC']['IP'].to_s)
-            msg_pair("Public DNS Name", dns_reverse_lookup(@server.template['NIC']['IP'].to_s))
+            msg_pair("Public DNS Name", fqdn)
             msg_pair("Template", connection.templates.get(@server.template['TEMPLATE_ID']).name.to_s)
 
             puts "\n"
@@ -84,7 +86,7 @@ class Chef
             ui.warn("Deleted server #{@server.id}")
 
             if config[:purge]
-              thing_to_delete = config[:chef_node_name] || instance_id
+              thing_to_delete = config[:chef_node_name] || fqdn
               destroy_item(Chef::Node, thing_to_delete, "node")
               destroy_item(Chef::ApiClient, thing_to_delete, "client")
             else
