@@ -56,7 +56,7 @@ class Chef
           connection = Fog::Compute.new(
             :provider => 'OCA',
             :oca_one_auth => Chef::Config[:knife][:oca_one_auth],
-            :aws_xml_rpc_endpoint => Chef::Config[:knife][:oca_xml_rpc_endpoint],
+            :oca_xml_rpc_endpoint => Chef::Config[:knife][:oca_xml_rpc_endpoint],
           )
         end
       end
