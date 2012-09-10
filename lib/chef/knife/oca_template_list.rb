@@ -36,7 +36,7 @@ class Chef
           ui.color('ID', :bold),
           ui.color('Name', :bold),
           ui.color('Architecture', :bold),
-          ui.color('# CPUs', :bold),
+          ui.color('CPUs', :bold),
           ui.color('Memory', :bold)
         ]
         connection.templates.all.each do |template|
@@ -46,7 +46,7 @@ class Chef
           flavor_list << template.template['VCPU']
           flavor_list << template.template['MEMORY']
         end
-        puts ui.list(flavor_list, :columns_across, 5)
+        puts ui.list(flavor_list, :uneven_columns_across, 5)
       end
     end
   end
