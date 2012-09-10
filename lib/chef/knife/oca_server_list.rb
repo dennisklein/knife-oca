@@ -37,7 +37,7 @@ class Chef
         server_list = [
           ui.color('ID', :bold),
           ui.color('Public IP', :bold),
-          ui.color('Public DNS Name', :bold)
+          ui.color('Public DNS Name', :bold),
           ui.color('State', :bold),
           ui.color('# CPUs', :bold),
           ui.color('Memory', :bold),
