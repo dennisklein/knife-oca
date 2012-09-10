@@ -19,6 +19,7 @@
 #
 
 require 'chef/knife'
+require 'resolv'
 
 class Chef
   class Knife
@@ -84,6 +85,10 @@ class Chef
         if errors.each{|e| ui.error(e)}.any?
           exit 1
         end
+      end
+
+      def dns_reverse_lookup(ip)
+        Resolv::DNS.new.getname(ip.to_s).to_s
       end
 
     end

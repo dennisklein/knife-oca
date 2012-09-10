@@ -37,6 +37,7 @@ class Chef
         server_list = [
           ui.color('ID', :bold),
           ui.color('Public IP', :bold),
+          ui.color('Public DNS Name', :bold)
           ui.color('State', :bold),
           ui.color('# CPUs', :bold),
           ui.color('Memory', :bold),
@@ -45,15 +46,16 @@ class Chef
         connection.virtual_machines.all('m').each do |server|
           server_list << server.id.to_s
           server_list << server.template['NIC']['IP'].to_s
+          server_list << dns_reverse_lookup(server.template['NIC']['IP'].to_s)
           server_list << begin
-            state = server.state.to_i
+            state = Fog::Compute::OCA::VirtualMachine::LCM_STATE[server.lcm_state.to_i]
             case state
-            when 'shutting-down','terminated','stopping','stopped'
-              ui.color(state, :red)
-            when 'pending'
-              ui.color(state, :yellow)
+            when 'SHUTDOWN', 'CANCEL', 'FAILURE', 'UNKNOWN'
+              ui.color(Fog::Compute::OCA::VirtualMachine::SHORT_LCM_STATE[state], :red)
+            when 'LCM_INIT', 'PROLOG', 'BOOT'
+              ui.color(Fog::Compute::OCA::VirtualMachine::SHORT_LCM_STATE[state], :yellow)
             else
-              ui.color(state, :green)
+              ui.color(Fog::Compute::OCA::VirtualMachine::SHORT_LCM_STATE[state], :green)
             end
           end
           server_list << server.template['VCPU'].to_s
@@ -63,7 +65,7 @@ class Chef
             template.name.to_s
           end
         end
-        puts ui.list(server_list, :uneven_columns_across, 6)
+        puts ui.list(server_list, :uneven_columns_across, 7)
 
       end
     end
