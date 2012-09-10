@@ -79,7 +79,7 @@ class Chef
             puts "\n"
             confirm("Do you really want to delete this server")
 
-            @server.destroy
+            @server.finalize
 
             ui.warn("Deleted server #{@server.id}")
 
