@@ -74,7 +74,7 @@ class Chef
             msg_pair("ID", @server.id.to_s)
             msg_pair("Public IP", @server.template['NIC']['IP'].to_s)
             msg_pair("Public DNS Name", dns_reverse_lookup(@server.template['NIC']['IP'].to_s))
-            msg_pair("Template", connection.templates.get(@server.template_id).name.to_s)
+            msg_pair("Template", connection.templates.get(@server.template['TEMPLATE_ID']).name.to_s)
 
             puts "\n"
             confirm("Do you really want to delete this server")
