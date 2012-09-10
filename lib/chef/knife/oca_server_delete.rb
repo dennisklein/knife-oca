@@ -73,7 +73,7 @@ class Chef
 
             msg_pair("ID", @server.id.to_s)
             msg_pair("Public IP", @server.template['NIC']['IP'].to_s)
-            msg_pair("Public DNS Name", reverse_dns_lookup(@server.template['NIC']['IP'].to_s))
+            msg_pair("Public DNS Name", dns_reverse_lookup(@server.template['NIC']['IP'].to_s))
             msg_pair("Template", connection.templates.get(@server.template_id).name.to_s)
 
             puts "\n"
