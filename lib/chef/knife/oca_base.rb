@@ -55,8 +55,8 @@ class Chef
         @connection ||= begin
           connection = Fog::Compute.new(
             :provider => 'oca',
-            :oca_one_auth => Chef::Config[:knife][:oca_one_auth],
-            :oca_xml_rpc_endpoint => Chef::Config[:knife][:oca_xml_rpc_endpoint],
+            :oca_one_auth => Chef::Config[:oca_one_auth],
+            :oca_xml_rpc_endpoint => Chef::Config[:oca_xml_rpc_endpoint],
           )
         end
       end
@@ -77,7 +77,7 @@ class Chef
 
         keys.each do |k|
           pretty_key = k.to_s.gsub(/_/, ' ').gsub(/\w+/){ |w| (w =~ /(ssh)|(oca)/i) ? w.upcase : w.capitalize }
-          if Chef::Config[:knife][k].nil?
+          if Chef::Config[k].nil? && Chef::Config[:knife][k].nil?
             errors << "You did not provide a valid '#{pretty_key}' value."
           end
         end
