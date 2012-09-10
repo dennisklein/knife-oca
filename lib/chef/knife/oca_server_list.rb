@@ -48,8 +48,9 @@ class Chef
           server_list << server.template['NIC']['IP'].to_s
           server_list << dns_reverse_lookup(server.template['NIC']['IP'].to_s)
           server_list << begin
-            state = '0' if state.nil?
-            state = Fog::Compute::OCA::VirtualMachine::LCM_STATE[server.lcm_state.to_i]
+            state = server.lcm_state.to_i
+            state = 1 if state == 0
+            state = Fog::Compute::OCA::VirtualMachine::LCM_STATE[state]
             case state
             when 'SHUTDOWN', 'CANCEL', 'FAILURE', 'UNKNOWN'
               ui.color(Fog::Compute::OCA::VirtualMachine::SHORT_LCM_STATES[state], :red)
