@@ -174,6 +174,7 @@ class Chef
         msg_pair("Template", @template.name)
         msg_pair("# CPUs", @template.template['VCPU'])
         msg_pair("Memory", @template.template['MEMORY'])
+        msg_pair("Architecture", @template.template['OS']['ARCH'])
 
         print "\n#{ui.color("Waiting for server", :magenta)}"
 
