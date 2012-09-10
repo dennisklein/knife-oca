@@ -32,7 +32,7 @@ class Chef
       def run
         $stdout.sync = true
 
-        validate!
+        #validate!
 
         server_list = [
           ui.color('ID', :bold),
@@ -61,7 +61,7 @@ class Chef
           server_list << server.template['VCPU'].to_s
           server_list << server.template['MEMORY'].to_s
           server_list << begin
-            template = connection.templates.get(server.template_id)
+            template = connection.templates.get(server.template['TEMPLATE_ID'])
             template.name.to_s
           end
         end

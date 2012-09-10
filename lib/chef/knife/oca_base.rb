@@ -54,7 +54,7 @@ class Chef
       def connection
         @connection ||= begin
           connection = Fog::Compute.new(
-            :provider => 'OCA',
+            :provider => 'oca',
             :oca_one_auth => Chef::Config[:knife][:oca_one_auth],
             :oca_xml_rpc_endpoint => Chef::Config[:knife][:oca_xml_rpc_endpoint],
           )
