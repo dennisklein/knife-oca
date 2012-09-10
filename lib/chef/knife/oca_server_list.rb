@@ -51,11 +51,11 @@ class Chef
             state = Fog::Compute::OCA::VirtualMachine::LCM_STATE[server.lcm_state.to_i]
             case state
             when 'SHUTDOWN', 'CANCEL', 'FAILURE', 'UNKNOWN'
-              ui.color(Fog::Compute::OCA::VirtualMachine::SHORT_LCM_STATE[state], :red)
+              ui.color(Fog::Compute::OCA::VirtualMachine::SHORT_LCM_STATES[state], :red)
             when 'LCM_INIT', 'PROLOG', 'BOOT'
-              ui.color(Fog::Compute::OCA::VirtualMachine::SHORT_LCM_STATE[state], :yellow)
+              ui.color(Fog::Compute::OCA::VirtualMachine::SHORT_LCM_STATES[state], :yellow)
             else
-              ui.color(Fog::Compute::OCA::VirtualMachine::SHORT_LCM_STATE[state], :green)
+              ui.color(Fog::Compute::OCA::VirtualMachine::SHORT_LCM_STATES[state], :green)
             end
           end
           server_list << server.template['VCPU'].to_s
