@@ -10,12 +10,12 @@ Knife plugin for OCA (OpenNebula Cloud API)
     gem install oca net-scp
 
 * Install patched fog
- 1. Clone the official <tt>fog</tt> gem source (and checkout version 1.5.0):
- 2. Checkout <tt>eaaf335870436499fe61c62fe42f44cd9e1584d0</tt> (it's a dev commit after 1.5.0 release, you might want to skip this step if you know what you are doing :) )
- 3. Install fog merged with my oca branch: <tt>https://github.com/Reverand221/fog/tree/oca</tt>
- 4. Pull my fog oca provider
- 5. Build the fog gem
- 6. Install the fog gem
+  1. Clone the official <tt>fog</tt> gem source (and checkout version 1.5.0):
+  2. Checkout <tt>eaaf335870436499fe61c62fe42f44cd9e1584d0</tt> (it's a dev commit after 1.5.0 release, you might want to skip this step if you know what you are doing :) )
+  3. Install fog merged with my oca branch: <tt>https://github.com/Reverand221/fog/tree/oca</tt>
+  4. Pull my fog oca provider
+  5. Build the fog gem
+  6. Install the fog gem
 
     git clone git://github.com/fog/fog.git
     cd fog
@@ -25,12 +25,16 @@ Knife plugin for OCA (OpenNebula Cloud API)
     gem build fog.gemspec
     gem install fog-1.5.0.gem
 
+== Status
+
+This gem contains the minimal api support that I required for my personal task. It is far away from being complete. The same is true for my oca fog provider. I have no plans to support more features unless I need them myself or there is heavy demand.
+
 == Assumptions
 
 * You have a OpenNebula 3.2+ private cloud instance running and its XML-RPC endpoint visible from your workstation.
 * You have two types of Virtual Machine Images prepared and uploaded to your OpenNebula cloud as templates:
- 1. *chef-server*: A *nix installation with a chef server and a ssh daemon preinstalled and setup to start operation on VM boot.
- 2. *naked*: Some basic *nix installation with a ssh daemon preinstalled and setup to start operation on VM boot.
+  * *chef-server*: A *nix installation with a chef server and a ssh daemon preinstalled and setup to start operation on VM boot.
+  * *naked*: Some basic *nix installation with a ssh daemon preinstalled and setup to start operation on VM boot.
 * The VM IP Adresses have DNS names and are registered in the reverse domain.
 
 == Installation
@@ -248,7 +252,13 @@ We might decide to delete a node eventually. <tt>--purge</tt> will delete the no
 
 In-depth documentation of all the available options can be listed by appending <tt>--help</tt> to the above commands.
 
+== Feedback
+
+Pls contact me directly on any matter at <tt><d.klein@gsi.de></tt>.
+
 == License
+
+This knife-oca gem is based on the <tt>https://github.com/opscode/knife-ec2</tt> source.
 
     # Author:: Dennis Klein (<d.klein@gsi.de>)
     # Copyright:: Copyright (c) 2012 GSI Helmholtz Centre for Heavy Ion Research.
