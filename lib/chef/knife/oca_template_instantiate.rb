@@ -136,6 +136,12 @@ class Chef
         :proc => lambda { |o| o.split(/[\s,]+/) },
         :default => ['/etc/chef/validation.pem', '/etc/chef/webui.pem']
 
+      option :repository,
+        :short => "-r REPO",
+        :long => "--repository REPO",
+        :description => "The path to your chef-repo, default is the current working directory.",
+        :default => Dir.pwd
+
       def tcp_test_ssh(hostname)
         tcp_socket = TCPSocket.new(hostname, config[:ssh_port])
         readable = IO.select([tcp_socket], nil, nil, 5)
@@ -269,12 +275,14 @@ class Chef
         configure.config[:admin_client_key] = File.join(Dir.pwd, 'webui.pem')
         configure.config[:validation_client_name] = 'chef-validator'
         configure.config[:validation_key] = File.join(Dir.pwd, 'validation.pem')
-        configure.config[:chef_repo] = Dir.pwd
+        configure.config[:repository] = config[:repository]
         configure.config[:config_file] = config[:config_file]
         # monkey patch Chef::Knife::Configure to not ask anything
         class << configure
           define_method(:ask_user_for_config_path) {} 
-          define_method(:ask_user_for_config) {}
+          define_method(:ask_user_for_config) do
+            @chef_repo = config[:repository]
+          end
         end
         configure.run
 
