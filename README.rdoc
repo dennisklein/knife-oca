@@ -1,4 +1,195 @@
-knife-oca
-=========
+= knife-oca
 
 Knife plugin for OCA (OpenNebula Cloud API)
+
+== Requirements
+
+* The oca gem is needed for oca provider in fog.
+* The net-scp is optional and needed if you use 'knife oca template instantiate' with the '--is-chef-server' option.
+
+    gem install oca net-scp
+
+1. Clone the official <tt>fog</tt> gem source (and checkout version 1.5.0):
+2. Checkout <tt>eaaf335870436499fe61c62fe42f44cd9e1584d0</tt> (it's a dev commit after 1.5.0 release, you might want to skip this step if you know what you are doing :) )
+3. Install <tt>fog</tt> merged with my oca branch: <tt>https://github.com/Reverand221/fog/tree/oca</tt>
+4. Pull my fog oca provider
+5. Build the <tt>fog</tt> gem
+6. Install the <tt>fog</tt> gem
+
+    git clone git://github.com/fog/fog.git
+    cd fog
+    git checkout eaaf335870436499fe61c62fe42f44cd9e1584d0
+    git remote add fog-oca git://github.com/Reverand221/fog.git
+    git pull fog-oca oca
+    gem build fog.gemspec
+    gem install fog-1.5.0.gem
+
+== Assumptions
+
+* You have a OpenNebula 3.2+ private cloud instance running and its XML-RPC endpoint visible from your workstation.
+* You have two types of Virtual Machine Images prepared and uploaded to your OpenNebula cloud as templates:
+   * chef-server: A *nix installation with a chef server and a ssh daemon preinstalled and setup to start operation on VM boot.
+   * naked: Some basic *nix installation with a ssh daemon preinstalled and setup to start operation on VM boot.
+* The VM IP Adresses have DNS names and are registered in the reverse domain.
+
+== Usage Example
+
+Setup a directory structure as following:
+
+    demo
+    |-- cookbooks
+    |-- knife.rb
+    |-- roles
+
+Put your cookbooks and roles into the corresponding subdirectories.
+
+The knife.rb file should contain the following:
+
+    oca_one_auth             'user:passwd'
+    oca_xml_rpc_endpoint     'http://frontend.opennebula.example:2633/RPC2'
+    ssh_password             'sshP4Ssw0Rd'
+    ssh_user                 'sshuser'
+
+The values should be replaced with the credentials to your OpenNebula cloud frontend and the ssh daemons on your VMs.
+
+    > knife oca template list 
+    ID  Name                              Architecture  CPUs  Memory
+    11  debian64-6.0.5-chef-server-10.12  x86_64        2     5632  
+    12  debian64-6.0.5-naked              x86_64        1     2816
+
+Instantiate a Chef server. Template No 11 has a preinstalled chef server which starts operation on bootup.
+
+    > knife oca template instantiate 11 --is-chef-server 
+    Instance ID: 175
+    Template: debian64-6.0.5-chef-server-10.12
+    # CPUs: 2
+    Memory: 5632
+    Architecture: x86_64
+
+    Waiting for server.............................................................done
+    Public DNS Name: vm-0059.cloud.example.com
+    Public IP Address: 10.17.0.89
+
+    Waiting for sshd......done
+    Downloading file vm-0059.cloud.example.com:/etc/chef/validation.pem to /demo ...
+    Downloading file vm-0059.cloud.example.com:/etc/chef/webui.pem to /demo ...
+    done
+    Creating initial API user...
+    Created client[someuser]
+    Configuration file written to /demo/knife.rb
+
+    Instance ID: 175
+    Template: debian64-6.0.5-chef-server-10.12
+    # CPUs: 2
+    Memory: 5632
+    Architecture: x86_64
+    Public DNS Name: vm-0059.cloud.example.com
+    Public IP Address: 10.17.0.89
+    Environment: _default
+
+    Knife config generated: /demo/knife.rb
+
+This command launched the chef server template and fully configured our workstation knife for the use with this new chef server. Let's have a look into the <tt>knife.rb</tt> file:
+
+    log_level                :info
+    log_location             STDOUT
+    node_name                'someuser'
+    client_key               '/demo/someuser.pem'
+    validation_client_name   'chef-validator'
+    validation_key           '/demo/validation.pem'
+    chef_server_url          'https://vm-0059.cloud.example.com:443'
+    cache_type               'BasicFile'
+    cache_options( :path => '/demo/checksums' )
+    cookbook_path [ '/demo/cookbooks' ]
+
+    oca_one_auth             'user:passwd'
+    oca_xml_rpc_endpoint     'http://frontend.opennebula.example:2633/RPC2'
+    ssh_password             'sshP4Ssw0Rd'
+    ssh_user                 'sshuser'
+
+A <tt>knife status</tt> will show the chef server node itself if you are running a <tt>chef-client</tt>.
+
+    > knife status 
+    8 minutes ago, vm-0059.cloud.example.com, vm-0059.cloud.example.com, 10.17.0.89, debian 6.0.5.
+
+<tt>knife oca server list</tt> will list the corresponding virtual machines in OpenNebula.
+
+    > knife oca server list
+    ID   Public IP   Public DNS Name            State  CPUs  Memory  Template                        
+    175  10.17.0.89  vm-0059.cloud.example.com  runn   2     5632    debian64-6.0.5-chef-server-10.12
+
+Now we want to launch naked VMs and bootstrap them with a chef-client:
+
+    > knife oca template instantiate 12
+    Instance ID: 176
+    Template: debian64-6.0.5-naked
+    # CPUs: 1
+    Memory: 2816
+    Architecture: x86_64
+
+    Waiting for server...............................done
+    Public DNS Name: vm-005a.cloud.example.com
+    Public IP Address: 10.17.0.90
+
+    Waiting for sshd.....done
+    Bootstrapping Chef on vm-005a.cloud.example.com
+    vm-005a.cloud.example.com --2012-09-11 16:56:46--  http://opscode.com/chef/install.sh
+    vm-005a.cloud.example.com Resolving opscode.com... 
+    vm-005a.cloud.example.com 184.106.28.82
+    vm-005a.cloud.example.com Connecting to opscode.com|184.106.28.82|:80... 
+    vm-005a.cloud.example.com connected.
+    vm-005a.cloud.example.com HTTP request sent, awaiting response... 
+    vm-005a.cloud.example.com 301 Moved Permanently
+    vm-005a.cloud.example.com Location: http://www.opscode.com/chef/install.sh [following]
+    vm-005a.cloud.example.com --2012-09-11 16:56:51--  http://www.opscode.com/chef/install.sh
+    vm-005a.cloud.example.com Resolving www.opscode.com... 
+    vm-005a.cloud.example.com 184.106.28.82
+    vm-005a.cloud.example.com Reusing existing connection to opscode.com:80.
+    vm-005a.cloud.example.com HTTP request sent, awaiting response... 
+    vm-005a.cloud.example.com 200 OK
+    vm-005a.cloud.example.com Length: 5801 (5.7K) [application/x-sh]
+    vm-005a.cloud.example.com Saving to: “STDOUT”
+    vm-005a.cloud.example.com 
+     0% [                                       ] 0           --.-K/s              
+    100%[======================================>] 5,801       --.-K/s   in 0.1s    
+    vm-005a.cloud.example.com 
+    vm-005a.cloud.example.com 2012-09-11 16:56:57 (51.8 KB/s) - written to stdout [5801/5801]
+    vm-005a.cloud.example.com 
+    vm-005a.cloud.example.com Downloading Chef 10.12.0 for debian...
+    vm-005a.cloud.example.com Installing Chef 10.12.0
+    vm-005a.cloud.example.com Selecting previously deselected package chef.
+    vm-005a.cloud.example.com (Reading database ... 
+     (Reading database ... 65%
+     (Reading database ... 70%
+     (Reading database ... 75%
+     (Reading database ... 80%
+     (Reading database ... 85%
+     (Reading database ... 90%
+     (Reading database ... 95%
+     (Reading database ... 22593 files and directories currently installed.)
+    vm-005a.cloud.example.com Unpacking chef (from /tmp/chef_10.12.0_amd64.deb) ...
+    vm-005a.cloud.example.com Setting up chef (10.12.0-1.debian.6.0.4) ...
+    vm-005a.cloud.example.com Thank you for installing Chef!
+    vm-005a.cloud.example.com [Tue, 11 Sep 2012 16:57:43 +0200] INFO: *** Chef 10.12.0 ***
+    vm-005a.cloud.example.com [Tue, 11 Sep 2012 16:57:45 +0200] INFO: Client key /etc/chef/client.pem is not present - registering
+    vm-005a.cloud.example.com [Tue, 11 Sep 2012 16:57:46 +0200] INFO: HTTP Request Returned 404 Not Found: Cannot load node vm-005a.cloud.example.com
+    vm-005a.cloud.example.com [Tue, 11 Sep 2012 16:57:46 +0200] INFO: Setting the run_list to [] from JSON
+    vm-005a.cloud.example.com [Tue, 11 Sep 2012 16:57:46 +0200] INFO: Run List is []
+    vm-005a.cloud.example.com [Tue, 11 Sep 2012 16:57:46 +0200] INFO: Run List expands to []
+    vm-005a.cloud.example.com [Tue, 11 Sep 2012 16:57:46 +0200] INFO: Starting Chef Run for vm-005a.cloud.example.com
+    vm-005a.cloud.example.com [Tue, 11 Sep 2012 16:57:46 +0200] INFO: Running start handlers
+    vm-005a.cloud.example.com [Tue, 11 Sep 2012 16:57:46 +0200] INFO: Start handlers complete.
+    vm-005a.cloud.example.com [Tue, 11 Sep 2012 16:57:46 +0200] INFO: Loading cookbooks []
+    vm-005a.cloud.example.com [Tue, 11 Sep 2012 16:57:46 +0200] WARN: Node vm-005a.cloud.example.com has an empty run list.
+    vm-005a.cloud.example.com [Tue, 11 Sep 2012 16:57:46 +0200] INFO: Chef Run complete in 0.3328068 seconds
+    vm-005a.cloud.example.com [Tue, 11 Sep 2012 16:57:46 +0200] INFO: Running report handlers
+    vm-005a.cloud.example.com [Tue, 11 Sep 2012 16:57:46 +0200] INFO: Report handlers complete
+
+    Instance ID: 176
+    Template: debian64-6.0.5-naked
+    # CPUs: 1
+    Memory: 2816
+    Architecture: x86_64
+    Public DNS Name: vm-005a.cloud.example.com
+    Public IP Address: 10.17.0.90
+    Environment: _default
