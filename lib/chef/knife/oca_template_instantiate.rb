@@ -240,6 +240,7 @@ class Chef
       def retrieve_files(fqdn, files)
         options = Hash.new
         options[:password] = Chef::Config[:ssh_password]
+        options[:paranoid] = config[:host_key_verify]
         options[:port] = Chef::Config[:ssh_port] unless Chef::Config[:ssh_port].nil?
         Net::SCP.start(fqdn, Chef::Config[:ssh_user], options) do |scp|
           synch = Array.new
@@ -257,7 +258,6 @@ class Chef
 
       def configure_knife(fqdn)
         additional_config = IO.read(config[:config_file])
-        File.delete(config[:config_file]) # delete config file, so Chef::Knife::Configure wont ask
 
         configure = Chef::Knife::Configure.new
         configure.config[:defaults] = true
