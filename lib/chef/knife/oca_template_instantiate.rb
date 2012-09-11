@@ -270,7 +270,7 @@ class Chef
         configure.config[:initial] = true
         configure.config[:node_name] = Etc.getlogin
         configure.config[:client_key] = File.join(File.dirname(config[:config_file]), "#{Etc.getlogin}.pem")
-        configure.config[:chef_server] = config[:chef_server_url_template].sub(/FQDN/, fqdn)
+        configure.config[:chef_server_url] = config[:chef_server_url_template].sub(/FQDN/, fqdn)
         configure.config[:admin_client_name] = 'chef-webui'
         configure.config[:admin_client_key] = File.join(Dir.pwd, 'webui.pem')
         configure.config[:validation_client_name] = 'chef-validator'
