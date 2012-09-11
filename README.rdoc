@@ -32,6 +32,12 @@ Knife plugin for OCA (OpenNebula Cloud API)
    * naked: Some basic *nix installation with a ssh daemon preinstalled and setup to start operation on VM boot.
 * The VM IP Adresses have DNS names and are registered in the reverse domain.
 
+== Installation
+
+See requirements above !!!
+
+    gem install knife-oca
+
 == Usage Example
 
 Setup a directory structure as following:
@@ -118,7 +124,9 @@ A <tt>knife status</tt> will show the chef server node itself if you are running
     ID   Public IP   Public DNS Name            State  CPUs  Memory  Template                        
     175  10.17.0.89  vm-0059.cloud.example.com  runn   2     5632    debian64-6.0.5-chef-server-10.12
 
-Now we want to launch naked VMs and bootstrap them with a chef-client:
+You can upload your cookbooks and roles now with <tt>knife cookbook upload</tt> and <tt>knife role from file</tt>.
+
+Now we want to launch naked VMs and bootstrap them with a chef-client. Optionally you can directly pass a run list with the command, e.g. <tt>knife oca template instantiate 12 --run-list 'role[samplerole]'</tt>
 
     > knife oca template instantiate 12
     Instance ID: 176
@@ -193,3 +201,52 @@ Now we want to launch naked VMs and bootstrap them with a chef-client:
     Public DNS Name: vm-005a.cloud.example.com
     Public IP Address: 10.17.0.90
     Environment: _default
+
+The new node will be registered with the chef server
+
+    > knife status 
+    25 minutes ago, vm-0059.cloud.example.com, vm-0059.cloud.example.com, 10.17.0.89, debian 6.0.5.
+    11 minutes ago, vm-005a.cloud.example.com, vm-005a.cloud.example.com, 10.17.0.90, debian 6.0.5.
+
+and with OpenNebula.
+
+    > knife oca server list
+    ID   Public IP   Public DNS Name            State  CPUs  Memory  Template
+    175  10.17.0.89  vm-0059.cloud.example.com  runn   2     5632    debian64-6.0.5-chef-server-10.12
+    176  10.17.0.90  vm-005a.cloud.example.com  runn   1     2816    debian64-6.0.5-naked
+
+We might decide to delete a node eventually. <tt>--purge</tt> will delete the node also on the chef server::
+
+    > knife oca server delete 176 --purge -y
+    ID: 176
+    Public IP: 10.17.0.90
+    Public DNS Name: vm-005a.cloud.example.com
+    Template: debian64-6.0.5-naked
+
+    WARNING: Deleted server 176
+    WARNING: Deleted node vm-005a.cloud.example.com
+    WARNING: Deleted client vm-005a.cloud.example.com
+
+    > knife status
+    29 minutes ago, vm-0059.cloud.example.com, vm-0059.cloud.example.com, 10.17.0.89, debian 6.0.5.
+
+    > knife oca server list
+    ID   Public IP   Public DNS Name            State  CPUs  Memory  Template
+    175  10.17.0.89  vm-0059.cloud.example.com  runn   2     5632    debian64-6.0.5-chef-server-10.12
+
+== Reference Documentation
+
+[knife oca server list] 
+
+[knife oca server delete ID [ID ...]] <tt>--purge</tt> to delete node on chef server too
+
+[knife oca template list]
+
+[knife oca template instantiate ID] <tt>--is-chef-server</tt> to not bootstrap and configure knife
+                                    <tt>--run-list</tt> to supply the initial run list
+
+In-depth documentation of all the available options can be listed by appending --help to the above commands.
+
+== License
+
+todo
