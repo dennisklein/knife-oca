@@ -1,5 +1,6 @@
 #
-# Modified by:: Dennis Klein (<d.klein@gsi.de>)
+# Author:: Dennis Klein (<d.klein@gsi.de>)
+# Copyright:: Copyright (c) 2012 GSI Helmholtz Centre for Heavy Ion Research.
 #
 # Author:: Seth Chisamore (<schisamo@opscode.com>)
 # Copyright:: Copyright (c) 2011 Opscode, Inc.
