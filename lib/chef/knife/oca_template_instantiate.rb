@@ -281,7 +281,14 @@ class Chef
         class << configure
           define_method(:ask_user_for_config_path) {} 
           define_method(:ask_user_for_config) do
-            @chef_repo = config[:repository]
+            @chef_server            = config[:chef_server_url]
+            @new_client_name        = config[:node_name]
+            @admin_client_name      = config[:admin_client_name]
+            @admin_client_key       = config[:admin_client_key]
+            @validation_client_name = config[:validation_client_name]
+            @validation_key         = config[:validation_key]
+            @new_client_key         = config[:client_key]
+            @chef_repo              = config[:repository]
           end
         end
         configure.run
