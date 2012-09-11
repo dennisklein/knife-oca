@@ -239,8 +239,8 @@ class Chef
         msg_pair("Environment", config[:environment] || '_default')
         msg_pair("Run List", config[:run_list].join(', '))
         msg_pair("JSON Attributes",config[:json_attributes]) unless config[:json_attributes].empty?
-        puts "\n"
-        msg_pair("Knife config generated", config[:config_file])
+        puts "\n" if config[:is_chef_server]
+        msg_pair("Knife config generated", config[:config_file]) if config[:is_chef_server]
       end
 
       def retrieve_files(fqdn, files)
