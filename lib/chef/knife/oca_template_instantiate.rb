@@ -1,9 +1,11 @@
 #
-# Modified by:: Dennis Klein (<d.klein@gsi.de>)
+# Author:: Dennis Klein (<d.klein@gsi.de>)
+# Copyright:: Copyright (c) 2012 GSI Helmholtz Centre for Heavy Ion Research.
 #
 # Author:: Adam Jacob (<adam@opscode.com>)
 # Author:: Seth Chisamore (<schisamo@opscode.com>)
 # Copyright:: Copyright (c) 2010-2011 Opscode, Inc.
+#
 # License:: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +22,7 @@
 #
 
 require 'chef/knife/oca_base'
+require 'net/scp'
 
 class Chef
   class Knife
@@ -116,6 +119,23 @@ class Chef
         :boolean => true,
         :default => false 
 
+      option :is_chef_server,
+        :long => "--is-chef-server",
+        :description => "Do not bootstrap, assume chef server is already installed, retrieve keys and configure knife",
+        :boolean => true,
+        :default => false
+
+      option :chef_server_url_template,
+        :long => "--chef-server-url-template",
+        :description => "Some chef servers are proxied, therefor you can specify a url template. The default is 'https://FQDN:443'. FQDN gets replaced with the full qualified domain name of the node.",
+        :default => "https://FQDN:443"
+
+      option :retrieve_files,
+        :long => "--retrieve-files",
+        :description => "Comma-seperated list of files to be scped from the node into the current working directory, defaults are ['/etc/chef/validation.pem', '/etc/chef/webui.pem']. Is only performed if --is-chef-server is set!",
+        :proc => lambda { |o| o.split(/[\s,]+/) },
+        :default => ['/etc/chef/validation.pem', '/etc/chef/webui.pem']
+
       def tcp_test_ssh(hostname)
         tcp_socket = TCPSocket.new(hostname, config[:ssh_port])
         readable = IO.select([tcp_socket], nil, nil, 5)
@@ -181,7 +201,7 @@ class Chef
         # wait for it to be ready to do stuff
         @server.wait_for { print "."; ready? }
 
-        puts("\n")
+        puts("done\n")
 
         fqdn = dns_reverse_lookup(@server.template['NIC']['IP'])
         
@@ -195,7 +215,12 @@ class Chef
           puts("done")
         }
 
-        bootstrap_for_node(@server,fqdn).run
+        if config[:is_chef_server] then
+          retrieve_files(fqdn, config[:retrieve_files])
+          configure_knife(fqdn)
+        else
+          bootstrap_for_node(@server,fqdn).run
+        end
 
         puts "\n"
         msg_pair("Instance ID", @server.id)
@@ -208,6 +233,52 @@ class Chef
         msg_pair("Environment", config[:environment] || '_default')
         msg_pair("Run List", config[:run_list].join(', '))
         msg_pair("JSON Attributes",config[:json_attributes]) unless config[:json_attributes].empty?
+        puts "\n"
+        msg_pair("Knife config generated", config[:config_file])
+      end
+
+      def retrieve_files(fqdn, files)
+        options = Hash.new
+        options[:password] = Chef::Config[:ssh_password]
+        options[:port] = Chef::Config[:ssh_port] unless Chef::Config[:ssh_port].nil?
+        Net::SCP.start(fqdn, Chef::Config[:ssh_user], options) do |scp|
+          synch = Array.new
+          files.each do |file|
+            puts ui.color("Downloading file ", :magenta) << "#{fqdn}:#{file}" << ui.color(" to ", :magenta) << "#{Dir.pwd}" << ui.color(" ...", :magenta)
+            synch << scp.download(file, Dir.pwd)
+          end
+          synch.each { |d| d.wait }
+          puts('done')
+        end
+      rescue => e
+        puts ui.error("Downloading some files from the node failed. Error: #{e}")
+        exit 1
+      end
+
+      def configure_knife(fqdn)
+        additional_config = IO.read(config[:config_file])
+        File.delete(config[:config_file]) # delete config file, so Chef::Knife::Configure wont ask
+
+        configure = Chef::Knife::Configure.new
+        configure.config[:defaults] = true
+        configure.config[:initial] = true
+        configure.config[:node_name] = Etc.getlogin
+        configure.config[:client_key] = File.join(File.dirname(config[:config_file]), "#{Etc.getlogin}.pem")
+        configure.config[:chef_server] = config[:chef_server_url_template].sub(/FQDN/, fqdn)
+        configure.config[:admin_client_name] = 'chef-webui'
+        configure.config[:admin_client_key] = File.join(Dir.pwd, 'webui.pem')
+        configure.config[:validation_client_name] = 'chef-validator'
+        configure.config[:validation_key] = File.join(Dir.pwd, 'validation.pem')
+        configure.config[:chef_repo] = Dir.pwd
+        configure.config[:config_file] = config[:config_file]
+        # monkey patch Chef::Knife::Configure to not ask anything
+        class << configure
+          define_method(:ask_user_for_config_path) {} 
+          define_method(:ask_user_for_config) {}
+        end
+        configure.run
+
+        open(config[:config_file], 'a') { |f| f << "\n#{additional_config}\n" }
       end
 
       def bootstrap_for_node(server,fqdn)
