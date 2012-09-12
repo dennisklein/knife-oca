@@ -1,14 +1,14 @@
-bash -c
+bash -c '
 <%= "export http_proxy=\"#{knife_config[:bootstrap_proxy]}\"" if knife_config[:bootstrap_proxy] -%>
 
 if [ ! -f /usr/bin/chef-client ]; then
-  apt-get install -y wget lsb-release
+  apt-get install -y -q wget lsb-release
   echo "chef chef/chef_server_url string <%= @chef_config[:chef_server_url] %>" | debconf-set-selections
   [ -f /etc/apt/sources.list.d/opscode.list ] || echo "deb http://apt.opscode.com <%= chef_version.to_f == 0.10 ? "`lsb_release -cs`-0.10" : "`lsb_release -cs`" %> main" > /etc/apt/sources.list.d/opscode.list
   wget <%= "--proxy=on " if knife_config[:bootstrap_proxy] %>-O- http://apt.opscode.com/packages@opscode.com.gpg.key | apt-key add -
 fi
-apt-get update
-apt-get install -y chef
+apt-get update -q
+apt-get install -y -q chef
 
 (
 cat <<'EOP'
