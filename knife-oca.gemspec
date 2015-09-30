@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.has_rdoc = true
   s.authors = ["Dennis Klein"]
   s.email = ["d.klein@gsi.de"]
-  s.homepage = "http://www.github.com/Reverand221/knife-oca"
+  s.homepage = "https://github.com/dennisklein/knife-oca"
   s.summary = "OCA Support for Chef's Knife Command"
   s.description = s.summary
   s.extra_rdoc_files = ["README.rdoc", "LICENSE"]
